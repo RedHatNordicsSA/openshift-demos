@@ -11,7 +11,7 @@ echo "$(date): Creating an PHP 7.0 application."
 oc new-app openshift/php:7.0~https://github.com/mglantz/ocp-php.git --name=php70
 oc expose service php70
 
-qecho "$(date): Creating an PHP 5.6 application"
+echo "$(date): Creating an PHP 5.6 application"
 oc new-app openshift/php:5.6~https://github.com/mglantz/ocp-php.git --name=php56
 oc expose service php56
 
