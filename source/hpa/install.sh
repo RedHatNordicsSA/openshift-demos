@@ -11,23 +11,23 @@ else
 fi
 
 # New project
-echo "Creating demo project: demo-hpa"
+echo "$(date) Creating demo project: demo-hpa"
 oc new-project demo-hpa
 
 # New tasks app
-echo "Creating tasks app"
+echo "$(date) Creating tasks app"
 oc new-app --template=openshift-tasks
 
 # Configure autoscaling
-echo "Configuring autoscaling to 3 pods if CPU util is =>60%"
+echo "$(date) Configuring autoscaling to 3 pods if CPU util is =>60%"
 oc autoscale dc/tasks --min 1 --max 3 --cpu-percent=60
 
 # Set resource limits
-echo "Creating resource limitation of 1 CPU core for tasks app"
+echo "$(date) Creating resource limitation of 1 CPU core for tasks app"
 oc create -f https://raw.githubusercontent.com/mglantz/openshift-demos/master/source/hpa/limit.json
 
 # Waiting for tasks pod to deploy, when this is done, we're ready.
-echo -n "Waiting for tasks app to deploy: "
+echo -n "$(date) Waiting for tasks app to deploy: "
 while true; do
 	if oc get pods -n demo-hpa|grep -vi build|grep Running|grep "1/1" >/dev/null; then
 		break
@@ -39,4 +39,4 @@ done
 echo
 
 # Demo instructions
-echo "Goto: http://$(oc get routes|grep tasks|awk '{ print $2 }') to generate load and see pod autoscale."
+echo "$(date) Goto: http://$(oc get routes|grep tasks|awk '{ print $2 }') to generate load and see pod autoscale."
