@@ -26,3 +26,4 @@ It would be awesome if you can contribute your own demonstrations :-)
 * Demos must take into account that ovs-multitenant (separation of project communication) may be running.
 * Demos should be self explainatory or include a README.md file in it's source directory.
 * Installation of demos must be fully automated, it's OK if running a demo is a manual or semi-manual task.
+* All demos are licenced under GPL 3.0, take it or leave it.
