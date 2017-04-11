@@ -7,7 +7,7 @@ PROD=0
 # Create projects, apps and routes
 for env in dev test prod; do
 	oc new-project appx-$env
-	oc new-app --name appx --image-stream=php:7.0 --code=https://github.com/mglantz/ocp-jenkins.git -n appx-$env
+	oc new-app --name appx --image-stream=nodejs:4.0 --code=https://github.com/mglantz/nodejs-ex.git -n appx-$env
 	oc expose service appx -n appx-$env
 done
 
@@ -41,7 +41,7 @@ oc policy add-role-to-user edit system:serviceaccount:appx-dev:jenkins -n appx-p
 
 # Create Jenkins and pipeline
 # It points at the Jenkinsfile in https://github.com/mglantz/ocp-jenkins.git
-oc create -f https://raw.githubusercontent.com/mglantz/ocp-jenkins/master/pipeline.yaml -n appx-dev
+oc create -f https://raw.githubusercontent.com/mglantz/nodejs-ex/master/pipeline.yaml -n appx-dev
 
 # Change deployment config to point at image build in dev
 oc get dc appx -n appx-test -o yaml >appx-test-dc.yaml
