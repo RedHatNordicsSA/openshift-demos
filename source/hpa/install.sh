@@ -27,7 +27,7 @@ echo "Creating resource limitation of 1 CPU core for tasks app"
 oc create -f https://raw.githubusercontent.com/mglantz/openshift-demos/master/source/hpa/limit.json
 
 # Waiting for tasks pod to deploy, when this is done, we're ready.
-echo "Waiting for tasks app to deploy: "
+echo -n "Waiting for tasks app to deploy: "
 while true; do
 	if oc get pods -n demo-hpa|grep -vi build|grep Running|grep "1/1" >/dev/null; then
 		break
@@ -36,6 +36,7 @@ while true; do
 	fi
 	sleep 1
 done
+echo
 
 # Demo instructions
 echo "Goto: http://$(oc get routes|grep tasks|awk '{ print $2 }') to generate load and see pod autoscale."
