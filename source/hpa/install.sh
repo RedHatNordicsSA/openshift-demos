@@ -3,24 +3,36 @@
 # Horizontal Pod Autoscaling Demo
 
 # Create tasks-app template, will be used to generate load in the HPA demo
-oc create -f https://raw.githubusercontent.com/OpenShiftDemos/openshift-tasks/master/app-template.yaml -n openshift
+if oc get templates -n openshift|grep tasks>/dev/null; then
+	echo "Found tasks template. Will not attempt to create."
+else
+	echo "Creating tasks template"
+	oc create -f https://raw.githubusercontent.com/OpenShiftDemos/openshift-tasks/master/app-template.yaml -n openshift
+fi
 
 # New project
+echo "Creating demo project: demo-hpa"
 oc new-project demo-hpa
 
 # New tasks app
+echo "Creating tasks app"
 oc new-app --template=openshift-tasks
 
 # Configure autoscaling
+echo "Configuring autoscaling to 3 pods if CPU util is =>60%"
 oc autoscale dc/tasks --min 1 --max 3 --cpu-percent=60
 
 # Set resource limits
+echo "Creating resource limitation of 1 CPU core for tasks app"
 oc create -f https://raw.githubusercontent.com/mglantz/openshift-demos/master/source/hpa/limit.json
 
 # Waiting for tasks pod to deploy, when this is done, we're ready.
+echo "Waiting for tasks app to deploy: "
 while true; do
 	if oc get pods -n demo-hpa|grep -vi build|grep Running|grep "1/1" >/dev/null; then
 		break
+	else
+		echo -n "."
 	fi
 	sleep 1
 done
