@@ -17,5 +17,13 @@ oc autoscale dc/tasks --min 1 --max 3 --cpu-percent=60
 # Set resource limits
 oc create -f https://raw.githubusercontent.com/mglantz/openshift-demos/master/source/hpa/limit.json
 
-# Redeploy tasks app accordingly
-oc rollout latest dc/tasks
+# Waiting for tasks pod to deploy, when this is done, we're ready.
+while true; do
+	if oc get pods -n demo-hpa|grep -vi build|grep Running|grep "1/1" >/dev/null; then
+		break
+	fi
+	sleep 1
+done
+
+# Demo instructions
+echo "Goto: http://$(oc get routes|grep tasks|awk '{ print $2 }') to generate load and see pod autoscale."
