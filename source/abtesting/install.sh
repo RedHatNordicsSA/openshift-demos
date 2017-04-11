@@ -19,10 +19,10 @@ echo "$(date): Creating an AB route"
 oc expose service nodejs40 --name='ab-nodejs' -l name='ab-nodejs'
 
 echo "$(date): Configuring load balancing between the two applications."
-oc set route-backends ab-php nodejs40=10 nodejs010=90
-oc annotate route/ab-php haproxy.router.openshift.io/balance=static-rr
+oc set route-backends ab-nodejs nodejs40=10 nodejs010=90
+oc annotate route/ab-nodejs haproxy.router.openshift.io/balance=static-rr
 
-echo "$(date): Waiting for the php applications to build and deploy. This may take a bit: "
+echo "$(date): Waiting for the nodejs applications to build and deploy. This may take a bit: "
 while true; do
 	if oc get builds|egrep '(nodejs40|nodejs010)'|grep Running|wc -l|grep 0 >/dev/null; then
 		if oc get pods|egrep '(nodejs40|nodejs010)'|grep Running|grep "1/1"|wc -l|grep 2 >/dev/null; then
