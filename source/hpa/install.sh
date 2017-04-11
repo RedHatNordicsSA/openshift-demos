@@ -42,7 +42,7 @@ echo -n "$(date): Waiting for the tasks app to become responsive (this may take 
 TASKS_URL="http://$(oc get routes|grep tasks|awk '{ print $2 }')"
 while true; do
 	if wget $TASKS_URL -S 2>&1|grep "200 OK" >/dev/null
-		echo "Connection established to tasks app
+		echo "Connection established to tasks app"
 	else
 		echo -n "."
 	fi
