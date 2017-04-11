@@ -43,6 +43,7 @@ TASKS_URL="http://$(oc get routes|grep tasks|awk '{ print $2 }')"
 while true; do
 	if wget $TASKS_URL -S 2>&1|grep "200 OK" >/dev/null; then
 		echo "Connection established to tasks app"
+		rm -f index.htm*
 		break
 	else
 		echo -n "."
