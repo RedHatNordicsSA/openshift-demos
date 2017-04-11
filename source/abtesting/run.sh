@@ -28,7 +28,7 @@ fi
 oc scale --replicas=1 dc nodejs40
 oc scale --replicas=1 dc nodejs010
 
-oc set route-backends ab-php nodejs40=10 nodejs010=90
+oc set route-backends ab-nodejs nodejs40=10 nodejs010=90
 ABROUTE=$(oc get route|grep ab-nodejs|awk '{ print $2 }')
 
 echo
