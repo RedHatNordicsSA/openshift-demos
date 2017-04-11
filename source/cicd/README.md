@@ -2,7 +2,7 @@
 
 ## Description
 This is a simple demo which displays how you can do CI/CD on OpenShift with Jenkins Pipeline integration.
-The demo deploys three projects (appx-dev, -test, -prod). In the -dev project, the Jenkins pipeline is created.
+The demo deploys three projects (appx-dev, -test, -prod). In the -dev project, the Jenkins pipeline is created. The application is build in the appx-dev project and the image build is then deployed in appx-test and appx-prod.
 Allow for the Jenkins pods to become available before running the pipeline.
 
 ## Instructions
