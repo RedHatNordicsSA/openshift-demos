@@ -14,7 +14,7 @@ To run install a demo in your OpenShift environment, on your OpenShift master se
 3. sh ./install.sh
 
 ## Howto run a demo
-Follow the instructions printed out by the install.sh script or (if it exists) run the 'run.sh' script as follows:
+Follow the instructions described by README.md in the demos source directory, printed out by the install.sh script or (if it exists) run the 'run.sh' script as follows:
 1. git clone https://github.com/mglantz/openshift-demos
 2. cd openshift-demos/source/name-of-demo-to-run
 3. sh ./run.sh
