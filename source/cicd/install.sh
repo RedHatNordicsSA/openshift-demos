@@ -7,7 +7,7 @@ PROD=0
 # Create projects, apps and routes
 for env in dev test prod; do
 	oc new-project appx-$env
-	oc new-app --name appx --image-stream=nodejs:4.0 --code=https://github.com/mglantz/nodejs-ex.git -n appx-$env
+	oc new-app --name appx --image-stream=openshift/nodejs:4 --code=https://github.com/mglantz/nodejs-ex.git -n appx-$env
 	oc expose service appx -n appx-$env
 done
 
