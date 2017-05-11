@@ -44,12 +44,10 @@ oc policy add-role-to-user edit system:serviceaccount:appx-dev:jenkins -n appx-p
 oc create -f https://raw.githubusercontent.com/mglantz/ocp-jenkins/master/pipeline.yaml -n appx-dev
 
 # Change deployment config to point at image build in dev
-oc get dc appx -n appx-test -o yaml >appx-test-dc.yaml
-sed -i -e 's/name: appx:latest/name: appx:TESTready/' appx-test-dc.yaml
-sed -i -e '0,/namespace: appx-test/! {0,/namespace: appx-test/ s/namespace: appx-test/namespace: appx-dev/}' appx-test-dc.yaml
-oc replace -f appx-test-dc.yaml -n appx-test
+oc get dc appx -n appx-test -o yaml | sed -e 's/name: appx:latest/name: appx:TESTready/' |\
+sed -e '0,/namespace: appx-test/! {0,/namespace: appx-test/ s/namespace: appx-test/namespace: appx-dev/}' |\
+oc replace -f - -n appx-test
 
-oc get dc appx -n appx-prod -o yaml >appx-prod-dc.yaml
-sed -i -e 's/name: appx:latest/name: appx:PRODready/' appx-prod-dc.yaml
-sed -i -e '0,/namespace: appx-prod/! {0,/namespace: appx-prod/ s/namespace: appx-prod/namespace: appx-dev/}' appx-prod-dc.yaml
-oc replace -f appx-prod-dc.yaml -n appx-prod
+oc get dc appx -n appx-prod -o yaml | sed -e 's/name: appx:latest/name: appx:PRODready/' |\
+sed -e '0,/namespace: appx-prod/! {0,/namespace: appx-prod/ s/namespace: appx-prod/namespace: appx-dev/}' |\
+oc replace -f - -n appx-prod
