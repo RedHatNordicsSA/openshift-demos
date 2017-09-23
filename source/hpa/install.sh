@@ -7,7 +7,7 @@ if oc get templates -n openshift|grep tasks>/dev/null; then
 	echo "Found tasks template. Will not attempt to create."
 else
 	echo "Creating tasks template"
-	oc create -f https://raw.githubusercontent.com/OpenShiftDemos/openshift-tasks/master/app-template.yaml -n openshift
+	oc create -f https://raw.githubusercontent.com/mglantz/openshift-tasks/master/app-template.yaml -n openshift
 fi
 
 # New project
