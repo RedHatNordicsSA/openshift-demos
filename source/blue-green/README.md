@@ -6,7 +6,7 @@ The demo deploys three projects (cicd, test & prod). In the cicd project, the CD
 The script is waiting for Jenkins to come online, this sometimes times out as there are a lot of images to pull. In that case just remove the cicd project and rerun setup.sh, it will work better the second time when the images are in the registry.
 
 ## Instructions
-On your master server, as root, run:
+Log in to OpenShift, then run:
 1. git clone https://github.com/mglantz/openshift-demos
 2. cd openshift-demos/blue-green
 3. sh ./install.sh
