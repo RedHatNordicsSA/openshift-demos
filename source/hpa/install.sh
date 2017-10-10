@@ -12,7 +12,7 @@ fi
 
 # New project
 echo "$(date) Creating demo project: demo-hpa"
-oc new-project demo-hpa
+oc new-project demo-hpa --description "Demo of automatic scaling of containers" --display-name "Demo - Horizontal Pod Autoscaling"
 
 # New tasks app
 echo "$(date) Creating tasks app"
