@@ -1,0 +1,1136 @@
+{
+    "kind": "List",
+    "apiVersion": "v1",
+    "metadata": {},
+    "items": [
+        {
+            "apiVersion": "v1",
+            "groupNames": null,
+            "kind": "RoleBinding",
+            "metadata": {
+                "labels": {
+                    "group": "cicd",
+                    "template": "cicd"
+                },
+                "name": "default_edit"
+            },
+            "roleRef": {
+                "name": "edit"
+            },
+            "subjects": [
+                {
+                    "kind": "ServiceAccount",
+                    "name": "default"
+                }
+            ]
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "BuildConfig",
+            "metadata": {
+                "annotations": {
+                    "pipeline.alpha.openshift.io/uses": "[{\"name\": \"jenkins\", \"namespace\": \"\", \"kind\": \"DeploymentConfig\"}]"
+                },
+                "labels": {
+                    "app": "cicd-pipeline",
+                    "group": "cicd",
+                    "name": "cicd-pipeline",
+                    "template": "cicd"
+                },
+                "name": "cicd-pipeline"
+            },
+            "spec": {
+                "nodeSelector": {},
+                "output": {},
+                "postCommit": {},
+                "resources": {},
+                "runPolicy": "Serial",
+                "source": {
+                    "git": {
+                        "ref": "master",
+                        "uri": "http://gogs:3000/gogs/application.git"
+                    },
+                    "type": "Git"
+                },
+                "strategy": {
+                    "jenkinsPipelineStrategy": {
+                        "env": [
+                            {
+                                "name": "TEST_PROJECT_PARAM",
+                                "value": "test"
+                            },
+                            {
+                                "name": "PROD_PROJECT_PARAM",
+                                "value": "prod"
+                            }
+                        ],
+                        "jenkinsfilePath": "Jenkinsfile"
+                    },
+                    "type": "JenkinsPipeline"
+                },
+                "triggers": [
+                    {
+                        "github": {
+                            "secret": "QygCHHuU"
+                        },
+                        "type": "GitHub"
+                    },
+                    {
+                        "generic": {
+                            "secret": "QygCHHuU"
+                        },
+                        "type": "Generic"
+                    }
+                ]
+            },
+            "status": {
+                "lastVersion": 1
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Service",
+            "metadata": {
+                "annotations": {
+                    "description": "Sonatype Nexus repository manager's http port"
+                },
+                "labels": {
+                    "app": "nexus",
+                    "group": "cicd",
+                    "template": "cicd"
+                },
+                "name": "nexus"
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "name": "web",
+                        "port": 8081,
+                        "protocol": "TCP",
+                        "targetPort": 8081
+                    }
+                ],
+                "selector": {
+                    "app": "nexus",
+                    "deploymentconfig": "nexus"
+                },
+                "sessionAffinity": "None",
+                "type": "ClusterIP"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Route",
+            "metadata": {
+                "labels": {
+                    "app": "nexus",
+                    "group": "cicd",
+                    "template": "cicd"
+                },
+                "name": "nexus"
+            },
+            "spec": {
+                "port": {
+                    "targetPort": "web"
+                },
+                "to": {
+                    "kind": "Service",
+                    "name": "nexus"
+                }
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "ImageStream",
+            "metadata": {
+                "labels": {
+                    "app": "nexus",
+                    "group": "cicd",
+                    "template": "cicd"
+                },
+                "name": "nexus"
+            },
+            "spec": {
+                "tags": [
+                    {
+                        "annotations": {
+                            "description": "The Nexus Docker image",
+                            "tags": "nexus"
+                        },
+                        "from": {
+                            "kind": "DockerImage",
+                            "name": "openshiftdemos/nexus:2.13.0-01"
+                        },
+                        "importPolicy": {},
+                        "name": "2.13.0-01"
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "DeploymentConfig",
+            "metadata": {
+                "labels": {
+                    "app": "nexus",
+                    "group": "cicd",
+                    "template": "cicd"
+                },
+                "name": "nexus"
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "app": "nexus",
+                    "deploymentconfig": "nexus"
+                },
+                "strategy": {
+                    "type": "Recreate"
+                },
+                "template": {
+                    "metadata": {
+                        "labels": {
+                            "app": "nexus",
+                            "deploymentconfig": "nexus"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "image": " ",
+                                "imagePullPolicy": "Always",
+                                "livenessProbe": {
+                                    "failureThreshold": 5,
+                                    "httpGet": {
+                                        "path": "/content/groups/public",
+                                        "port": 8081
+                                    },
+                                    "initialDelaySeconds": 60,
+                                    "periodSeconds": 10,
+                                    "successThreshold": 1,
+                                    "timeoutSeconds": 5
+                                },
+                                "name": "nexus",
+                                "ports": [
+                                    {
+                                        "containerPort": 8081,
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "readinessProbe": {
+                                    "failureThreshold": 5,
+                                    "httpGet": {
+                                        "path": "/content/groups/public",
+                                        "port": 8081
+                                    },
+                                    "initialDelaySeconds": 60,
+                                    "periodSeconds": 10,
+                                    "successThreshold": 1,
+                                    "timeoutSeconds": 5
+                                },
+                                "resources": {
+                                    "limits": {
+                                        "cpu": 1,
+                                        "memory": "2Gi"
+                                    },
+                                    "requests": {
+                                        "cpu": "200m",
+                                        "memory": "512Mi"
+                                    }
+                                },
+                                "terminationMessagePath": "/dev/termination-log",
+                                "volumeMounts": [
+                                    {
+                                        "mountPath": "/opt/nexus-work",
+                                        "name": "nexus-data"
+                                    }
+                                ]
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "restartPolicy": "Always",
+                        "terminationGracePeriodSeconds": 30,
+                        "volumes": [
+                            {
+                                "emptyDir": {},
+                                "name": "nexus-data"
+                            }
+                        ]
+                    }
+                },
+                "triggers": [
+                    {
+                        "type": "ConfigChange"
+                    },
+                    {
+                        "imageChangeParams": {
+                            "automatic": true,
+                            "containerNames": [
+                                "nexus"
+                            ],
+                            "from": {
+                                "kind": "ImageStreamTag",
+                                "name": "nexus:2.13.0-01"
+                            }
+                        },
+                        "type": "ImageChange"
+                    }
+                ]
+            },
+            "status": {}
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Service",
+            "metadata": {
+                "annotations": {
+                    "description": "The Gogs server's http port",
+                    "service.alpha.openshift.io/dependencies": "[{\"name\": \"postgresql-gogs\", \"namespace\": \"\", \"kind\": \"Service\"}]",
+                    "service.openshift.io/infrastructure": "true"
+                },
+                "labels": {
+                    "app": "gogs",
+                    "group": "cicd",
+                    "template": "cicd"
+                },
+                "name": "gogs"
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "name": "web",
+                        "port": 3000,
+                        "protocol": "TCP",
+                        "targetPort": 3000
+                    }
+                ],
+                "selector": {
+                    "app": "gogs",
+                    "deploymentconfig": "gogs"
+                },
+                "sessionAffinity": "None",
+                "type": "ClusterIP"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Service",
+            "metadata": {
+                "creationTimestamp": null,
+                "labels": {
+                    "app": "gogs",
+                    "group": "cicd",
+                    "template": "cicd"
+                },
+                "name": "postgresql-gogs"
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "name": "postgresql",
+                        "port": 5432,
+                        "protocol": "TCP",
+                        "targetPort": 5432
+                    }
+                ],
+                "selector": {
+                    "app": "gogs",
+                    "deploymentconfig": "postgresql-gogs"
+                },
+                "sessionAffinity": "None",
+                "type": "ClusterIP"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Route",
+            "metadata": {
+                "annotations": {
+                    "description": "Route for gogs's http service."
+                },
+                "labels": {
+                    "app": "gogs",
+                    "group": "cicd",
+                    "template": "cicd"
+                },
+                "name": "gogs"
+            },
+            "spec": {
+                "to": {
+                    "kind": "Service",
+                    "name": "gogs"
+                }
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "ImageStream",
+            "metadata": {
+                "labels": {
+                    "app": "gogs",
+                    "group": "cicd",
+                    "template": "cicd"
+                },
+                "name": "gogs"
+            },
+            "spec": {
+                "tags": [
+                    {
+                        "annotations": {
+                            "description": "The Gogs git server docker image",
+                            "tags": "gogs,go,golang"
+                        },
+                        "from": {
+                            "kind": "DockerImage",
+                            "name": "openshiftdemos/gogs:0.9.113"
+                        },
+                        "importPolicy": {},
+                        "name": "0.9.113"
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "DeploymentConfig",
+            "metadata": {
+                "labels": {
+                    "app": "gogs",
+                    "group": "cicd",
+                    "template": "cicd"
+                },
+                "name": "gogs"
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "app": "gogs",
+                    "deploymentconfig": "gogs"
+                },
+                "strategy": {
+                    "type": "Recreate"
+                },
+                "template": {
+                    "metadata": {
+                        "labels": {
+                            "app": "gogs",
+                            "deploymentconfig": "gogs"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "image": " ",
+                                "imagePullPolicy": "Always",
+                                "livenessProbe": {
+                                    "failureThreshold": 3,
+                                    "httpGet": {
+                                        "path": "/",
+                                        "port": 3000
+                                    },
+                                    "initialDelaySeconds": 15,
+                                    "periodSeconds": 10,
+                                    "successThreshold": 1,
+                                    "timeoutSeconds": 2
+                                },
+                                "name": "gogs",
+                                "ports": [
+                                    {
+                                        "containerPort": 3000,
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "readinessProbe": {
+                                    "failureThreshold": 3,
+                                    "httpGet": {
+                                        "path": "/",
+                                        "port": 3000
+                                    },
+                                    "initialDelaySeconds": 15,
+                                    "periodSeconds": 10,
+                                    "successThreshold": 1,
+                                    "timeoutSeconds": 1
+                                },
+                                "resources": {
+                                    "limits": {
+                                        "cpu": "500m",
+                                        "memory": "512Mi"
+                                    },
+                                    "requests": {
+                                        "cpu": "100m",
+                                        "memory": "256Mi"
+                                    }
+                                },
+                                "terminationMessagePath": "/dev/termination-log",
+                                "volumeMounts": [
+                                    {
+                                        "mountPath": "/opt/gogs/data",
+                                        "name": "gogs-data"
+                                    },
+                                    {
+                                        "mountPath": "/etc/gogs/conf",
+                                        "name": "gogs-config"
+                                    }
+                                ]
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "restartPolicy": "Always",
+                        "securityContext": {},
+                        "terminationGracePeriodSeconds": 30,
+                        "volumes": [
+                            {
+                                "emptyDir": {},
+                                "name": "gogs-data"
+                            },
+                            {
+                                "configMap": {
+                                    "items": [
+                                        {
+                                            "key": "app.ini",
+                                            "path": "app.ini"
+                                        }
+                                    ],
+                                    "name": "gogs-config"
+                                },
+                                "name": "gogs-config"
+                            }
+                        ]
+                    }
+                },
+                "triggers": [
+                    {
+                        "type": "ConfigChange"
+                    },
+                    {
+                        "imageChangeParams": {
+                            "automatic": true,
+                            "containerNames": [
+                                "gogs"
+                            ],
+                            "from": {
+                                "kind": "ImageStreamTag",
+                                "name": "gogs:0.9.113"
+                            }
+                        },
+                        "type": "ImageChange"
+                    }
+                ]
+            },
+            "status": {}
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "DeploymentConfig",
+            "metadata": {
+                "creationTimestamp": null,
+                "labels": {
+                    "app": "gogs",
+                    "deploymentconfig": "postgresql-gogs",
+                    "group": "cicd",
+                    "template": "cicd"
+                },
+                "name": "postgresql-gogs"
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "app": "gogs",
+                    "deploymentconfig": "postgresql-gogs"
+                },
+                "strategy": {
+                    "recreateParams": {
+                        "timeoutSeconds": 600
+                    },
+                    "type": "Recreate"
+                },
+                "template": {
+                    "metadata": {
+                        "labels": {
+                            "app": "gogs",
+                            "deploymentconfig": "postgresql-gogs"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "env": [
+                                    {
+                                        "name": "POSTGRESQL_USER",
+                                        "value": "userLF5"
+                                    },
+                                    {
+                                        "name": "POSTGRESQL_PASSWORD",
+                                        "value": "aP3NCm3krnIcHFpP"
+                                    },
+                                    {
+                                        "name": "POSTGRESQL_DATABASE",
+                                        "value": "gogs"
+                                    }
+                                ],
+                                "image": " ",
+                                "imagePullPolicy": "IfNotPresent",
+                                "livenessProbe": {
+                                    "failureThreshold": 3,
+                                    "initialDelaySeconds": 30,
+                                    "periodSeconds": 10,
+                                    "successThreshold": 1,
+                                    "tcpSocket": {
+                                        "port": 5432
+                                    },
+                                    "timeoutSeconds": 1
+                                },
+                                "name": "postgresql",
+                                "ports": [
+                                    {
+                                        "containerPort": 5432,
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "readinessProbe": {
+                                    "exec": {
+                                        "command": [
+                                            "/bin/sh",
+                                            "-i",
+                                            "-c",
+                                            "psql -h 127.0.0.1 -U $POSTGRESQL_USER -q -d $POSTGRESQL_DATABASE -c 'SELECT 1'"
+                                        ]
+                                    },
+                                    "failureThreshold": 3,
+                                    "initialDelaySeconds": 5,
+                                    "periodSeconds": 10,
+                                    "successThreshold": 1,
+                                    "timeoutSeconds": 1
+                                },
+                                "resources": {
+                                    "limits": {
+                                        "cpu": "200m",
+                                        "memory": "256Mi"
+                                    },
+                                    "requests": {
+                                        "cpu": "100m",
+                                        "memory": "128Mi"
+                                    }
+                                },
+                                "securityContext": {
+                                    "capabilities": {},
+                                    "privileged": false
+                                },
+                                "terminationMessagePath": "/dev/termination-log",
+                                "volumeMounts": [
+                                    {
+                                        "mountPath": "/var/lib/pgsql/data",
+                                        "name": "postgresql-data"
+                                    }
+                                ]
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "restartPolicy": "Always",
+                        "securityContext": {},
+                        "terminationGracePeriodSeconds": 30,
+                        "volumes": [
+                            {
+                                "emptyDir": {},
+                                "name": "postgresql-data"
+                            }
+                        ]
+                    }
+                },
+                "triggers": [
+                    {
+                        "imageChangeParams": {
+                            "automatic": true,
+                            "containerNames": [
+                                "postgresql"
+                            ],
+                            "from": {
+                                "kind": "ImageStreamTag",
+                                "name": "postgresql:9.5",
+                                "namespace": "openshift"
+                            }
+                        },
+                        "type": "ImageChange"
+                    },
+                    {
+                        "type": "ConfigChange"
+                    }
+                ]
+            },
+            "status": {}
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Pod",
+            "metadata": {
+                "labels": {
+                    "app": "gogs",
+                    "group": "cicd",
+                    "job": "install-gogs",
+                    "template": "cicd"
+                },
+                "name": "install-gogs"
+            },
+            "spec": {
+                "containers": [
+                    {
+                        "command": [
+                            "/bin/bash",
+                            "/tmp/installgogs.sh"
+                        ],
+                        "env": [
+                            {
+                                "name": "CICD_PROJECT",
+                                "valueFrom": {
+                                    "fieldRef": {
+                                        "fieldPath": "metadata.namespace"
+                                    }
+                                }
+                            },
+                            {
+                                "name": "REPO",
+                                "value": "https://github.com/jbrannst/appdev-foundations-kitchensink"
+                            }
+                        ],
+                        "image": "docker.io/openshiftdemos/oc",
+                        "name": "oc",
+                        "resources": {
+                            "limits": {
+                                "memory": "128Mi"
+                            }
+                        },
+                        "volumeMounts": [
+                            {
+                                "mountPath": "/tmp/",
+                                "name": "gogs-install"
+                            }
+                        ]
+                    }
+                ],
+                "restartPolicy": "Never",
+                "volumes": [
+                    {
+                        "configMap": {
+                            "items": [
+                                {
+                                    "key": "installgogs.sh",
+                                    "path": "installgogs.sh"
+                                }
+                            ],
+                            "name": "gogs-install"
+                        },
+                        "name": "gogs-install"
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "data": {
+                "app.ini": "RUN_MODE = prod\nRUN_USER = gogs\n\n[security]\nINSTALL_LOCK = false\n\n[repository]\nROOT = /opt/gogs/data/repositories\n\n[webhook]\nSKIP_TLS_VERIFY = true\n"
+            },
+            "kind": "ConfigMap",
+            "metadata": {
+                "labels": {
+                    "group": "cicd",
+                    "template": "cicd"
+                },
+                "name": "gogs-config"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "data": {
+                "installgogs.sh": "#!/bin/bash\n\nset -x\n\n# Use the oc client to get the url for the gogs and jenkins route and service\nGOGSSVC=$(oc get svc gogs -o template --template='{{.spec.clusterIP}}')\nGOGSROUTE=$(oc get route gogs -o template --template='{{.spec.host}}')\nJENKINSSVC=$(oc get svc jenkins -o template --template='{{.spec.clusterIP}}')\n\n# Use the oc client to get the postgres and jenkins variables into the current shell\neval $(oc env dc/postgresql-gogs --list | grep -v \\#)\neval $(oc env dc/jenkins --list | grep -v \\#)\n\n# postgres has a readiness probe, so checking if there is at least one\n# endpoint means postgres is alive and ready, so we can then attempt to install gogs\n# we're willing to wait 60 seconds for it, otherwise something is wrong.\nx=1\noc get ep postgresql-gogs -o yaml | grep \"\\- addresses:\"\nwhile [ ! $? -eq 0 ]\ndo\n  sleep 10\n  x=$(( $x + 1 ))\n\n  if [ $x -gt 100 ]\n  then\n    exit 255\n  fi\n\n  oc get ep postgresql-gogs -o yaml | grep \"\\- addresses:\"\ndone\n\n# now we wait for gogs to be ready in the same way\nx=1\noc get ep gogs -o yaml | grep \"\\- addresses:\"\nwhile [ ! $? -eq 0 ]\ndo\n  sleep 10\n  x=$(( $x + 1 ))\n\n  if [ $x -gt 100 ]\n  then\n    exit 255\n  fi\n\n  oc get ep gogs -o yaml | grep \"\\- addresses:\"\ndone\n\n# we might catch the router before it's been updated, so wait just a touch\n# more\nsleep 10\n\nRETURN=$(curl -o /dev/null -sL --post302 -w \"%{http_code}\" http://$GOGSSVC:3000/install \\\n--form db_type=PostgreSQL \\\n--form db_host=postgresql-gogs:5432 \\\n--form db_user=$POSTGRESQL_USER \\\n--form db_passwd=$POSTGRESQL_PASSWORD \\\n--form db_name=gogs \\\n--form ssl_mode=disable \\\n--form db_path=data/gogs.db \\\n--form \"app_name=Gogs: Go Git Service\" \\\n--form repo_root_path=/home/gogs/gogs-repositories \\\n--form run_user=gogs \\\n--form domain=localhost \\\n--form ssh_port=22 \\\n--form http_port=3000 \\\n--form app_url=http://${GOGSROUTE}/ \\\n--form log_root_path=/opt/gogs/log \\\n--form admin_name=gogs \\\n--form admin_passwd=password \\\n--form admin_confirm_passwd=password \\\n--form admin_email=admin@gogs.com)\n\nif [ $RETURN != \"200\" ]\nthen\n  echo \"ERROR: Failed to initialize Gogs\"\n  exit 255\nfi\n\nsleep 10\n\necho $REPO\n# import github repository\ncat \u003c\u003cEOF \u003e /tmp/data.json\n{\n  \"clone_addr\": \"$REPO\",\n  \"uid\": 1,\n  \"repo_name\": \"application\"\n}\nEOF\n\nRETURN=$(curl -o /dev/null -sL -w \"%{http_code}\" -H \"Content-Type: application/json\" \\\n-u gogs:password -X POST http://$GOGSSVC:3000/api/v1/repos/migrate -d @/tmp/data.json)\n\nif [ $RETURN != \"201\" ]\nthen\n  echo \"ERROR: Failed to imported application GitHub repo\"\n  exit 255\nfi\n\nsleep 5\n\n# add webhook to Gogs to trigger pipeline on push\ncat \u003c\u003cEOF \u003e /tmp/data.json\n{\n  \"type\": \"gogs\",\n  \"config\": {\n    \"url\": \"https://openshift.default.svc.cluster.local/oapi/v1/namespaces/$CICD_PROJECT/buildconfigs/cicd-pipeline/webhooks/QygCHHuU/generic\",\n    \"content_type\": \"json\"\n  },\n  \"events\": [\n    \"push\"\n  ],\n  \"active\": true\n}\nEOF\n\nRETURN=$(curl -o /dev/null -sL -w \"%{http_code}\" -H \"Content-Type: application/json\" \\\n-u gogs:password -X POST http://$GOGSSVC:3000/api/v1/repos/gogs/application/hooks -d @/tmp/data.json)\n\nif [ $RETURN != \"201\" ]\nthen\n  echo \"ERROR: Failed to set webhook\"\n  exit 255\nfi\n"
+            },
+            "kind": "ConfigMap",
+            "metadata": {
+                "labels": {
+                    "group": "cicd",
+                    "template": "cicd"
+                },
+                "name": "gogs-install"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Service",
+            "metadata": {
+                "creationTimestamp": null,
+                "labels": {
+                    "app": "sonarqube",
+                    "group": "cicd",
+                    "template": "cicd"
+                },
+                "name": "postgresql-sonarqube"
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "name": "postgresql",
+                        "port": 5432,
+                        "protocol": "TCP",
+                        "targetPort": 5432
+                    }
+                ],
+                "selector": {
+                    "app": "sonarqube",
+                    "deploymentconfig": "postgresql-sonarqube"
+                },
+                "sessionAffinity": "None",
+                "type": "ClusterIP"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Service",
+            "metadata": {
+                "annotations": {
+                    "service.alpha.openshift.io/dependencies": "[{\"name\": \"postgresql-sonarqube\", \"namespace\": \"\", \"kind\": \"Service\"}]",
+                    "service.openshift.io/infrastructure": "true"
+                },
+                "labels": {
+                    "app": "sonarqube",
+                    "group": "cicd",
+                    "template": "cicd"
+                },
+                "name": "sonarqube"
+            },
+            "spec": {
+                "ports": [
+                    {
+                        "name": "sonarqube",
+                        "port": 9000,
+                        "protocol": "TCP",
+                        "targetPort": 9000
+                    }
+                ],
+                "selector": {
+                    "app": "sonarqube",
+                    "deploymentconfig": "sonarqube"
+                },
+                "sessionAffinity": "None",
+                "type": "ClusterIP"
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "Route",
+            "metadata": {
+                "annotations": {
+                    "description": "Route for SonarQube's http service."
+                },
+                "labels": {
+                    "app": "sonarqube",
+                    "group": "cicd",
+                    "template": "cicd"
+                },
+                "name": "sonarqube"
+            },
+            "spec": {
+                "to": {
+                    "kind": "Service",
+                    "name": "sonarqube"
+                }
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "ImageStream",
+            "metadata": {
+                "labels": {
+                    "app": "sonarqube",
+                    "group": "cicd",
+                    "template": "cicd"
+                },
+                "name": "sonarqube"
+            },
+            "spec": {
+                "tags": [
+                    {
+                        "annotations": {
+                            "description": "The SonarQube Docker image",
+                            "tags": "sonarqube"
+                        },
+                        "from": {
+                            "kind": "DockerImage",
+                            "name": "openshiftdemos/sonarqube:6.0"
+                        },
+                        "importPolicy": {},
+                        "name": "6.0"
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "DeploymentConfig",
+            "metadata": {
+                "labels": {
+                    "app": "sonarqube",
+                    "deploymentconfig": "postgresql-sonarqube",
+                    "group": "cicd",
+                    "template": "cicd"
+                },
+                "name": "postgresql-sonarqube"
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "app": "sonarqube",
+                    "deploymentconfig": "postgresql-sonarqube"
+                },
+                "strategy": {
+                    "recreateParams": {
+                        "timeoutSeconds": 600
+                    },
+                    "resources": {},
+                    "type": "Recreate"
+                },
+                "template": {
+                    "metadata": {
+                        "labels": {
+                            "app": "sonarqube",
+                            "deploymentconfig": "postgresql-sonarqube"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "env": [
+                                    {
+                                        "name": "POSTGRESQL_USER",
+                                        "value": "userLF5"
+                                    },
+                                    {
+                                        "name": "POSTGRESQL_PASSWORD",
+                                        "value": "GPc1xYEcNUsfQHoc"
+                                    },
+                                    {
+                                        "name": "POSTGRESQL_DATABASE",
+                                        "value": "sonar"
+                                    }
+                                ],
+                                "image": " ",
+                                "imagePullPolicy": "IfNotPresent",
+                                "livenessProbe": {
+                                    "failureThreshold": 3,
+                                    "initialDelaySeconds": 30,
+                                    "periodSeconds": 10,
+                                    "successThreshold": 1,
+                                    "tcpSocket": {
+                                        "port": 5432
+                                    },
+                                    "timeoutSeconds": 1
+                                },
+                                "name": "postgresql",
+                                "ports": [
+                                    {
+                                        "containerPort": 5432,
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "readinessProbe": {
+                                    "exec": {
+                                        "command": [
+                                            "/bin/sh",
+                                            "-i",
+                                            "-c",
+                                            "psql -h 127.0.0.1 -U $POSTGRESQL_USER -q -d $POSTGRESQL_DATABASE -c 'SELECT 1'"
+                                        ]
+                                    },
+                                    "failureThreshold": 3,
+                                    "initialDelaySeconds": 5,
+                                    "periodSeconds": 10,
+                                    "successThreshold": 1,
+                                    "timeoutSeconds": 1
+                                },
+                                "resources": {
+                                    "limits": {
+                                        "cpu": "200m",
+                                        "memory": "256Mi"
+                                    },
+                                    "requests": {
+                                        "cpu": "100m",
+                                        "memory": "128Mi"
+                                    }
+                                },
+                                "securityContext": {
+                                    "capabilities": {},
+                                    "privileged": false
+                                },
+                                "terminationMessagePath": "/dev/termination-log",
+                                "volumeMounts": [
+                                    {
+                                        "mountPath": "/var/lib/pgsql/data",
+                                        "name": "postgresql-data"
+                                    }
+                                ]
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "restartPolicy": "Always",
+                        "securityContext": {},
+                        "terminationGracePeriodSeconds": 30,
+                        "volumes": [
+                            {
+                                "emptyDir": {},
+                                "name": "postgresql-data"
+                            }
+                        ]
+                    }
+                },
+                "test": false,
+                "triggers": [
+                    {
+                        "imageChangeParams": {
+                            "automatic": true,
+                            "containerNames": [
+                                "postgresql"
+                            ],
+                            "from": {
+                                "kind": "ImageStreamTag",
+                                "name": "postgresql:9.5",
+                                "namespace": "openshift"
+                            }
+                        },
+                        "type": "ImageChange"
+                    },
+                    {
+                        "type": "ConfigChange"
+                    }
+                ]
+            },
+            "status": {}
+        },
+        {
+            "apiVersion": "v1",
+            "kind": "DeploymentConfig",
+            "metadata": {
+                "labels": {
+                    "app": "sonarqube",
+                    "deploymentconfig": "sonarqube",
+                    "group": "cicd",
+                    "template": "cicd"
+                },
+                "name": "sonarqube"
+            },
+            "spec": {
+                "replicas": 1,
+                "selector": {
+                    "app": "sonarqube",
+                    "deploymentconfig": "sonarqube"
+                },
+                "strategy": {
+                    "resources": {},
+                    "rollingParams": {
+                        "intervalSeconds": 1,
+                        "maxSurge": "25%",
+                        "maxUnavailable": "25%",
+                        "timeoutSeconds": 600,
+                        "updatePeriodSeconds": 1
+                    },
+                    "type": "Rolling"
+                },
+                "template": {
+                    "metadata": {
+                        "annotations": {
+                            "openshift.io/container.sonarqube.image.entrypoint": "[\"./bin/run.sh\"]"
+                        },
+                        "creationTimestamp": null,
+                        "labels": {
+                            "app": "sonarqube",
+                            "deploymentconfig": "sonarqube"
+                        }
+                    },
+                    "spec": {
+                        "containers": [
+                            {
+                                "env": [
+                                    {
+                                        "name": "SONARQUBE_JDBC_PASSWORD",
+                                        "value": "GPc1xYEcNUsfQHoc"
+                                    },
+                                    {
+                                        "name": "SONARQUBE_JDBC_URL",
+                                        "value": "jdbc:postgresql://postgresql-sonarqube/sonar"
+                                    },
+                                    {
+                                        "name": "SONARQUBE_JDBC_USERNAME",
+                                        "value": "userLF5"
+                                    }
+                                ],
+                                "image": " ",
+                                "imagePullPolicy": "IfNotPresent",
+                                "livenessProbe": {
+                                    "failureThreshold": 3,
+                                    "httpGet": {
+                                        "path": "/",
+                                        "port": 9000
+                                    },
+                                    "initialDelaySeconds": 60,
+                                    "periodSeconds": 20,
+                                    "successThreshold": 1,
+                                    "timeoutSeconds": 5
+                                },
+                                "name": "sonarqube",
+                                "ports": [
+                                    {
+                                        "containerPort": 9000,
+                                        "protocol": "TCP"
+                                    }
+                                ],
+                                "readinessProbe": {
+                                    "failureThreshold": 3,
+                                    "httpGet": {
+                                        "path": "/",
+                                        "port": 9000
+                                    },
+                                    "initialDelaySeconds": 60,
+                                    "periodSeconds": 20,
+                                    "successThreshold": 1,
+                                    "timeoutSeconds": 5
+                                },
+                                "resources": {
+                                    "limits": {
+                                        "cpu": 2,
+                                        "memory": "2Gi"
+                                    },
+                                    "requests": {
+                                        "cpu": "500m",
+                                        "memory": "1Gi"
+                                    }
+                                },
+                                "terminationMessagePath": "/dev/termination-log"
+                            }
+                        ],
+                        "dnsPolicy": "ClusterFirst",
+                        "restartPolicy": "Always",
+                        "securityContext": {},
+                        "terminationGracePeriodSeconds": 30
+                    }
+                },
+                "test": false,
+                "triggers": [
+                    {
+                        "type": "ConfigChange"
+                    },
+                    {
+                        "imageChangeParams": {
+                            "automatic": true,
+                            "containerNames": [
+                                "sonarqube"
+                            ],
+                            "from": {
+                                "kind": "ImageStreamTag",
+                                "name": "sonarqube:6.0"
+                            }
+                        },
+                        "type": "ImageChange"
+                    }
+                ]
+            },
+            "status": {}
+        }
+    ]
+}
