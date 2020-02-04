@@ -12,9 +12,9 @@ sleep 1
 oc project demo-abtesting
 
 echo
-if oc get pods|egrep '(php56|php70)'|grep Running|grep "1/1"|wc -l|grep 2 >/dev/null; then
+if oc get pods|egrep '(php70|php72)'|grep Running|grep "1/1"|wc -l|grep 2 >/dev/null; then
 	echo "$(date): Applications are up. Displaying applications in project demo-abtesting:"
-	oc get pods|egrep '(php56|php70)'|grep Running|grep "1/1"
+	oc get pods|egrep '(php72|php72)'|grep Running|grep "1/1"
 	echo
 	echo "$(date): Displaying AB route:"
 	oc get route|grep ab-php
@@ -25,14 +25,14 @@ else
 	exit 1
 fi
 
+oc scale --replicas=1 dc php72
 oc scale --replicas=1 dc php70
-oc scale --replicas=1 dc php56
 
-oc set route-backends ab-php php70=10 php56=90
+oc set route-backends ab-php php72=10 php70=90
 ABROUTE=$(oc get route|grep ab-php|awk '{ print $2 }')
 
 echo
-echo "$(date): Making 10 http requests to the load balanced AB route. 1 out of 10 requests will go to the pod running PHP 7.0."
+echo "$(date): Making 100 http requests to the load balanced AB route. 10 out of 100 requests will go to the pod running PHP 7.2."
 sleep 1
 
 echo
@@ -44,17 +44,23 @@ echo
 read -p "Press enter to continue demo." GO
 
 echo
-for i in {1..10}; do
-	curl -s http://$ABROUTE|grep Version
-	sleep 1
+loaded=0
+echo "Sending 100 connections to http://$ABROUTE"
+for i in {1..100}; do
+	if curl -s http://$ABROUTE|grep "Version: 7.2" >/dev/null; then
+		echo "Info: Connection hit pod running PHP version 7.2."
+		loaded=$(echo $loaded + 1|bc)
+	fi
 done
+echo "Total number of hits to PHP version 7.2 per 100 connections was: $loaded"
+
 
 echo
 read -p "Press enter to continue demo." GO
 
 echo
-echo "$(date): Changing load balancing distribution to send 1 out of 5 requests to the pod running PHP 7.0."
-oc set route-backends ab-php php70=20 php56=80
+echo "$(date): Changing load balancing distribution to send 20 out of 100 requests to the pod running PHP 7.2."
+oc set route-backends ab-php php72=20 php70=80
 sleep 1
 
 echo
@@ -66,19 +72,23 @@ echo
 read -p "Press enter to continue demo." GO
 
 echo
-echo "$(date): Making 5 http requests to the load balanced AB route."
-for i in {1..5}; do
-        curl -s http://$ABROUTE|grep Version
-        sleep 1
+loaded=0
+echo "Sending 100 connections to http://$ABROUTE"
+for i in {1..100}; do
+        if curl -s http://$ABROUTE|grep "Version: 7.2" >/dev/null; then
+                echo "Info: Connection hit pod running PHP version 7.2."
+                loaded=$(echo $loaded + 1|bc)
+        fi
 done
+echo "Total number of hits to PHP version 7.2 per 100 connections was: $loaded"
 
 echo
 read -p "Press enter to continue demo." GO
 
 echo
-echo "$(date): Changing load balancing distribution to send 1 out of 2 requests to the pod running PHP 7.0."
+echo "$(date): Changing load balancing distribution to send 50 out of 100 requests to the pod running PHP 7.2."
 
-oc set route-backends ab-php php70=50 php56=50
+oc set route-backends ab-php php72=50 php70=50
 
 echo
 echo "$(date): Displaying AB route:"
@@ -89,44 +99,53 @@ echo
 read -p "Press enter to continue demo." GO
 
 echo
-echo "$(date): Making 10 http requests to the load balanced AB route."
-for i in {1..10}; do
-        curl -s http://$ABROUTE|grep Version
-        sleep 1
+loaded=0
+echo "Sending 100 connections to http://$ABROUTE"
+for i in {1..100}; do
+        if curl -s http://$ABROUTE|grep "Version: 7.2" >/dev/null; then
+                echo "Info: Connection hit pod running PHP version 7.2."
+                loaded=$(echo $loaded + 1|bc)
+        fi
 done
+echo "Total number of hits to PHP version 7.2 per 100 connections was: $loaded"
+
 
 echo
 read -p "Press enter to continue demo." GO
 
 echo
-echo "$(date): Changing load balancing distribution to send all requests to the pod running PHP 7.0."
+echo "$(date): Changing load balancing distribution to send all requests to the pod running PHP 7.2."
 
-oc set route-backends ab-php php70=100 php56=0
+oc set route-backends ab-php php72=100 php70=0
 
 echo
 echo "$(date): Displaying AB route:"
 oc get route|grep ab-php
 sleep 1
 
-echo "$(date): Scaling pod that runs PHP 7.0 to 2 pods."
+echo "$(date): Scaling pod that runs PHP 7.2 to 2 pods."
 
-oc scale --replicas=2 dc php70
+oc scale --replicas=2 dc php72
 sleep 10
 
 echo "$(date): Displaying running pods."
 oc get pods|grep Running
 
 echo
-echo "$(date): Making 10 http requests to the load balanced AB route."
-for i in {1..10}; do
-        curl -s http://$ABROUTE|grep Version
-        sleep 1
+loaded=0
+echo "Sending 100 connections to http://$ABROUTE"
+for i in {1..100}; do
+        if curl -s http://$ABROUTE|grep "Version: 7.2" >/dev/null; then
+                echo "Info: Connection hit pod running PHP version 7.2."
+                loaded=$(echo $loaded + 1|bc)
+        fi
 done
+echo "Total number of hits to PHP version 7.2 per 100 connections was: $loaded"
 
 echo
-echo "$(date): Scaling number of pods running PHP 5.6 to 0."
+echo "$(date): Scaling number of pods running PHP 7.0 to 0."
 
-oc scale --replicas=0 dc php56
+oc scale --replicas=0 dc php70
 
 sleep 5
 echo "$(date): Displaying pods."
