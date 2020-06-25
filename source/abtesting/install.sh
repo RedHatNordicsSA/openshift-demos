@@ -3,7 +3,7 @@
 echo "$(date): Setting up demo environment."
 
 echo "$(date): Creating project: demo-abtesting."
-oc new-project demo-abtesting --description "Demo of AB testing using PHP 7.2 and 7.0" --display-name "Demo - AB testing"
+oc new-project demo-abtesting --description "Demo of AB testing using PHP 7.3 and 7.2" --display-name "Demo - AB testing"
 
 oc project demo-abtesting
 
@@ -11,7 +11,7 @@ echo "$(date): Creating an PHP 7.2 application."
 oc new-app openshift/php:7.2~https://github.com/mglantz/ocp-php.git --name=php72 -n demo-abtesting
 oc expose service php72 -n demo-abtesting
 
-echo "$(date): Creating an PHP 5.6 application"
+echo "$(date): Creating an PHP 7.3 application"
 oc new-app openshift/php:7.3~https://github.com/mglantz/ocp-php.git --name=php73 -n demo-abtesting
 oc expose service php73 -n demo-abtesting
 
