@@ -12,9 +12,9 @@ sleep 1
 oc project demo-greenblue
 
 echo
-if oc get pods|egrep '(php72|php73)'|grep Running|grep "1/1"|wc -l|grep 2 >/dev/null; then
+if oc get pods|egrep '(php73|php74)'|grep Running|grep "1/1"|wc -l|grep 2 >/dev/null; then
 	echo "$(date): Applications are up. Displaying applications in project demo-greenblue:"
-	oc get pods|egrep '(php73|php73)'|grep Running|grep "1/1"
+	oc get pods|egrep '(php74|php74)'|grep Running|grep "1/1"
 	echo
 	echo "$(date): Displaying AB route:"
 	oc get route|grep greenblue-php
@@ -27,12 +27,12 @@ else
 fi
 
 # Reset environment
-oc scale --replicas=1 dc php73
-oc scale --replicas=1 dc php72
-oc patch route/greenblue-php -p '{"spec":{"to":{"name":"php72"}}}'
+oc scale --replicas=1 deployment/php74
+oc scale --replicas=1 deployment/php73
+oc patch route/greenblue-php -p '{"spec":{"to":{"name":"php73"}}}'
 
 echo
-echo "$(date): Making 5 http requests to the green-blue route. Requests will go to the pod running PHP 7.2."
+echo "$(date): Making 5 http requests to the green-blue route. Requests will go to the pod running PHP 7.4."
 sleep 1
 
 echo
@@ -54,8 +54,8 @@ echo
 read -p "Press enter to continue demo." GO
 
 echo
-echo "$(date): Changing load balancing and sending traffic to the pod running PHP 7.3."
-oc patch route/greenblue-php -p '{"spec":{"to":{"name":"php73"}}}'
+echo "$(date): Changing load balancing and sending traffic to the pod running PHP 7.4."
+oc patch route/greenblue-php -p '{"spec":{"to":{"name":"php74"}}}'
 
 sleep 1
 
@@ -77,8 +77,8 @@ echo
 read -p "Press enter to continue demo." GO
 
 echo
-echo "$(date): Changing load balancing back to pod running PHP 7.2."
-oc patch route/greenblue-php -p '{"spec":{"to":{"name":"php72"}}}'
+echo "$(date): Changing load balancing back to pod running PHP 7.4."
+oc patch route/greenblue-php -p '{"spec":{"to":{"name":"php73"}}}'
 
 echo
 echo "$(date): Displaying AB route:"
