@@ -12,9 +12,9 @@ sleep 1
 oc project demo-abtesting
 
 echo
-if oc get pods|egrep '(php72|php73)'|grep Running|grep "1/1"|wc -l|grep 2 >/dev/null; then
+if oc get pods|egrep '(php73|php74)'|grep Running|grep "1/1"|wc -l|grep 2 >/dev/null; then
 	echo "$(date): Applications are up. Displaying applications in project demo-abtesting:"
-	oc get pods|egrep '(php73|php73)'|grep Running|grep "1/1"
+	oc get pods|egrep '(php74|php74)'|grep Running|grep "1/1"
 	echo
 	echo "$(date): Displaying AB route:"
 	oc get route|grep ab-php
@@ -25,10 +25,10 @@ else
 	exit 1
 fi
 
-oc scale --replicas=1 dc php73
-oc scale --replicas=1 dc php72
+oc scale --replicas=1 deployment/php74
+oc scale --replicas=1 deployment/php73
 
-oc set route-backends ab-php php73=10 php72=90
+oc set route-backends ab-php php74=10 php73=90
 ABROUTE=$(oc get route|grep ab-php|awk '{ print $2 }')
 
 echo
@@ -60,7 +60,7 @@ read -p "Press enter to continue demo." GO
 
 echo
 echo "$(date): Changing load balancing distribution to send 20 out of 100 requests to the pod running PHP 7.3."
-oc set route-backends ab-php php73=20 php72=80
+oc set route-backends ab-php php74=20 php73=80
 sleep 1
 
 echo
@@ -88,7 +88,7 @@ read -p "Press enter to continue demo." GO
 echo
 echo "$(date): Changing load balancing distribution to send 50 out of 100 requests to the pod running PHP 7.3."
 
-oc set route-backends ab-php php73=50 php72=50
+oc set route-backends ab-php php74=50 php73=50
 
 echo
 echo "$(date): Displaying AB route:"
@@ -116,7 +116,7 @@ read -p "Press enter to continue demo." GO
 echo
 echo "$(date): Changing load balancing distribution to send all requests to the pod running PHP 7.3."
 
-oc set route-backends ab-php php73=100 php72=0
+oc set route-backends ab-php php74=100 php73=0
 
 echo
 echo "$(date): Displaying AB route:"
@@ -125,7 +125,7 @@ sleep 1
 
 echo "$(date): Scaling pod that runs PHP 7.3 to 2 pods."
 
-oc scale --replicas=2 dc php73
+oc scale --replicas=2 deployment/php74
 sleep 10
 
 echo "$(date): Displaying running pods."
@@ -145,7 +145,7 @@ echo "Total number of hits to PHP version 7.3 per 100 connections was: $loaded"
 echo
 echo "$(date): Scaling number of pods running PHP 7.2 to 0."
 
-oc scale --replicas=0 dc php72
+oc scale --replicas=0 deployment/php73
 
 sleep 5
 echo "$(date): Displaying pods."
