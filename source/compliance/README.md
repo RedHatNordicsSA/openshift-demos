@@ -1,6 +1,6 @@
 # Demo of OpenShift Compliance Scanning
 A free feature on OpenShift Container Platform. Turn complicated work into almost immediate and
-continue compliance. Uses OpenSCAP.
+continued compliance. Uses OpenSCAP.
 
 In this demo we apply military grade hardening (e8) to OpenShift Container Platform.
 
@@ -15,3 +15,7 @@ Login to cluster with oc command and run below command to run demo:
 ```
 sh ./run.sh
 ```
+
+# Learn more
+
+Have a look here: https://github.com/openshift/compliance-operator/blob/master/doc/tutorials/workshop/content/exercises/03-creating-your-first-scan.md
