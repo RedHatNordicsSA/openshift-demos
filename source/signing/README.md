@@ -8,7 +8,7 @@ chroot /host
 
 2. Put pubkey.gpg locate in this repository in /root/pubkey.gpg
 3. Replace /etc/container/policy.json with policy.json stored in this repository.
-4. Demonstrate how you can pull an image which is signed with correct key
+4. Demonstrate how you can pull an image which is signed with correct key. The key is Red Hat's official container signing key, so anything in Red Hat's registry will work.
 ```
 sh-4.4# podman pull registry.access.redhat.com/rhel7
 Trying to pull registry.access.redhat.com/rhel7:latest...
