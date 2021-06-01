@@ -28,4 +28,5 @@ Trying to pull docker.io/library/hello-world:latest...
 Error: Source image rejected: A signature was required, but no signature exists
 sh-4.4# 
 ```
+6. Potentially, restore the policy, as you will not be able to deploy custom build images with this policy. Replace /etc/container/policy.json with content in policy-org.json in this repository.
 
