@@ -1,0 +1,20 @@
+{
+    "default": [
+        {
+            "type": "insecureAcceptAnything"
+        }
+    ],
+    "transports": {
+        "docker": {
+            "docker.io":
+            [{
+                    "type": "signedBy",
+                    "keyType": "GPGKeys",
+                    "keyPath": "/root/pubkey.gpg"
+            }]
+        },             
+        "docker-daemon": {
+            "": [{"type":"insecureAcceptAnything"}]
+        }
+    }
+}
